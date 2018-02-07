@@ -25,7 +25,11 @@ def main():
         worker_data = generate_worker_data()
     else:
         worker_data = None
-    pi = calculate(worker_data)
+    data = comm.scatter(worker_data, root=0)
+
+    pi = compute_pi(data) / size
+
+    pi = comm.reduce(pi, op=MPI.SUM, root=0)
     if is_master:
         error = abs(pi - np.pi)
         print("pi is approximately %.16f, error is %.16f" % (pi, error))
@@ -35,15 +39,6 @@ def generate_worker_data():
     iterations = int(sys.argv[1]) if len(sys.argv) > 1 else 100000
     n = iterations // size
     return np.random.random((size, n, 2))  # generate random x,y arrays for all workers
-
-
-def calculate(worker_data):
-    comm.Barrier()
-    data = comm.scatter(worker_data, root=0)
-    pi = compute_pi(data) / size
-    pi = comm.reduce(pi, op=MPI.SUM, root=0)
-    comm.Barrier()
-    return pi
 
 
 def compute_pi(samples):
