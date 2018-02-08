@@ -34,7 +34,7 @@ def main():
 
 
 def get_matrix_size():
-    matrix_size = int(sys.argv[1]) if len(sys.argv) > 1 else 4
+    matrix_size = int(sys.argv[1]) if len(sys.argv) > 1 else size
     if matrix_size != size:
         raise Exception("matrix_size^2 must be greater or equal to cluster size")
     return matrix_size
