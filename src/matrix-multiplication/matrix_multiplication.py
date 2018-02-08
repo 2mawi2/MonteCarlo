@@ -1,5 +1,5 @@
 import os
-
+from mpi4py import MPI
 import sys
 
 try:
@@ -11,8 +11,6 @@ finally:
     del os.environ["OMP_NUM_THREADS"]
     del os.environ["NUMEXPR_NUM_THREADS"]
     del os.environ["MKL_NUM_THREADS"]
-
-from mpi4py import MPI
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
