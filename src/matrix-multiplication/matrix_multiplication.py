@@ -21,28 +21,30 @@ is_master = rank == 0
 
 
 def main():
-    matrix_size = get_matrix_size()
-    data = generate_worker_data(matrix_size) if is_master else None
+    ms = get_matrix_size()
+    m1, m2 = generate_matrices(ms)
 
-    data = comm.scatter(data, root=0)  # distribute
-    result = np.dot(data[0], data[1])  # calculate
-    result = comm.gather(result, root=0)  # collect
+    matrix1_column = comm.scatter(m1, root=0)  # scatter columns of matrix1
+    m2 = comm.bcast(m2, root=0)  # bcast matrix2
+    result = [np.dot(matrix1_column, row) for row in m2.transpose()]  # dot every column with transposed matrix2
+    result = comm.gather(result, root=0)  # collect data to master
 
     if is_master:
-        print(np.reshape(result, (matrix_size, matrix_size)))
+        print(np.reshape(result, (ms, ms)))
 
 
 def get_matrix_size():
     matrix_size = int(sys.argv[1]) if len(sys.argv) > 1 else 4
-    if matrix_size * matrix_size != size:
-        raise Exception("matrix_size^2 must be equal to cluster size")
+    if matrix_size != size:
+        raise Exception("matrix_size^2 must be greater or equal to cluster size")
     return matrix_size
 
 
-def generate_worker_data(s):
-    matrix1 = np.random.random((s, s))
-    matrix2 = np.random.random((s, s))
-    return [[row, column] for row in matrix1 for column in matrix2]
+def generate_matrices(ms):
+    if is_master:
+        return np.random.random((ms, ms)), np.random.random((ms, ms))
+    else:
+        return None, None
 
 
 if __name__ == "__main__":
