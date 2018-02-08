@@ -24,14 +24,12 @@ def main():
     matrix_size = get_matrix_size()
     data = generate_worker_data(matrix_size) if is_master else None
 
-    data = comm.scatter(data, root=0)
-    result = np.dot(data[0], data[1])
-
-    result = comm.gather(result, root=0)
+    data = comm.scatter(data, root=0)  # distribute
+    result = np.dot(data[0], data[1])  # calculate
+    result = comm.gather(result, root=0)  # collect
 
     if is_master:
-        result = np.reshape(result, (matrix_size, matrix_size))
-        print(result)
+        print(np.reshape(result, (matrix_size, matrix_size)))
 
 
 def get_matrix_size():
